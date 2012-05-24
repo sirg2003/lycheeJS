@@ -1,0 +1,19 @@
+{
+	"state": {
+		"Credits": [ "js" ],
+		"Game": [ "js" ],
+		"Menu": [ "js" ],
+		"Result": [ "js" ]
+	},
+	"entity": {
+		"Jewel": [ "js" ],
+		"Text": [ "js" ]
+	},
+	"Board": [ "js" ],
+	"DeviceSpecificHacks": [ "js" ],
+	"Jukebox": [ "js" ],
+	"Main": [ "js", "css" ],
+	"Renderer": [ "js" ],
+	"Sidebar": [ "js" ],
+	"Score": [ "js" ]
+}
