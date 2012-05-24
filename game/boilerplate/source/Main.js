@@ -32,8 +32,8 @@ lychee.define('game.Main').requires([
 			sound: true,
 			music: true,
 			fullscreen: false,
-			renderFps: 20,
-			updateFps: 20,
+			renderFps: 60,
+			updateFps: 60,
 			width: 896,
 			height: 386
 		},
