@@ -20,7 +20,7 @@ lychee.define('game.logic.COM').exports(function(lychee, global) {
 	Class.STRENGTH = {
 		weak:       10000,
 		normal:     5000,
-		hard:       1000
+		hard:       1000,
 		extreme:    200
 	};
 
