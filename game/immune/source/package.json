@@ -1,0 +1,42 @@
+{
+	"state": {
+		"Campaign": [ "js" ],
+		"Editor": [ "js" ],
+		"Game": [ "js" ],
+		"GameOver": [ "js" ],
+		"Menu": [ "js" ]
+	},
+	"entity": {
+		"Cell": [ "js" ],
+		"Text": [ "js" ],
+		"Unit": [ "js" ],
+		"Vesicle": [ "js" ]
+	},
+	"immune": {
+		"IgM": [ "js" ]
+	},
+	"neutral": {
+		"Cell": [ "js" ],
+		"Leucocyte": [ "js" ]
+	},
+	"campaign": {
+		'Immune1': [ "js" ]
+	},
+	"logic": {
+		"COM": [ "js" ],
+		"Main": [ "js" ],
+		"Path": [ "js" ]
+	},
+	"skirmish": {
+		"Roundabout": [ "js" ]
+	},
+	"virus": {
+		"Flu": [ "js" ]
+	},
+	"DeviceSpecificHacks": [ "js" ],
+	"Jukebox": [ "js" ],
+	"Level": [ "js" ],
+	"Main": [ "js", "css" ],
+	"Renderer": [ "js" ],
+	"Statusbar": [ "js" ]
+}

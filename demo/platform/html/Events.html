@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+	<title>LycheeJS Events Demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- libraries -->
+	<script src="../../../lychee/core.js"></script>
+	<script src="../../../lychee/platform/html/Builder.js"></script>
+
+	<!-- demo -->
+	<link rel="stylesheet" href="../../source/Main.css">
+
+</head>
+<body>
+
+<div id="demo">
+	<p class="notification" id="demo-notification">
+		Take a look at the Web Console!
+	</p>
+</div>
+
+<script>
+lychee.rebase({
+	lychee: "../../../lychee"
+});
+
+
+lychee.define('demo.Main').requires([
+	'lychee.Events'
+]).exports(function(lychee) {
+
+	var Child = function(id) {
+		this.id = id;
+		lychee.Events.call(this, 'child');
+	};
+
+	lychee.extend(Child.prototype, lychee.Events.prototype, {
+		destroy: function() {
+			this.trigger('destroy', [ this.id + ' destroyed' ]);
+		}
+	});
+
+
+	var Parent = function(settings) {
+		lychee.Events.call(this, 'parent');
+	};
+
+	lychee.extend(Parent.prototype, lychee.Events.prototype);
+
+
+	var child1 = new Child(1);
+	var child2 = new Child(2);
+
+	var parent = new Parent();
+
+
+	child1.subscribe(parent, 'parent');
+	child2.subscribe(parent, 'parent');
+
+
+	// '#child' will set first argument to the parent instance
+	//  'child' will remove the first argument being a parent
+	parent.bind('#child.destroy', function(a, b, c) {
+		console.log('Subscription arrived:', a, b, c);
+	}, this);
+
+
+	setTimeout(function() {
+		child1.destroy();
+	}, 1000);
+
+	setTimeout(function() {
+		child2.destroy();
+	}, 2000);
+
+
+	// demo.Main isnt a class... so we dont want
+	// to pollute the global namespace
+	return null;
+
+});
+
+
+lychee.build('demo.Main', {
+	platform: 'html'
+});
+</script>
+</body>
+</html>   

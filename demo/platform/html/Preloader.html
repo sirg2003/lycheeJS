@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+	<title>LycheeJS Preloader Demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- libraries -->
+	<script src="../../../lychee/core.js"></script>
+	<script src="../../../lychee/platform/html/Builder.js"></script>
+
+	<!-- demo -->
+	<link rel="stylesheet" href="../../source/Main.css">
+
+</head>
+<body>
+
+<div id="demo">
+	<p class="notification" id="demo-notification">
+		Take a look at the Web Console!
+	</p>
+</div>
+
+<script>
+var base = "../..";
+
+lychee.rebase({
+	lychee: "../../../lychee",
+	demo: base
+});
+
+
+lychee.define('demo.Main').requires([
+	'lychee.Preloader'
+]).exports(function(lychee) {
+
+	var urls = [
+		base + "/asset/img/background.png"
+	];
+
+	var preloader = new lychee.Preloader(urls, {
+		timeout: 3000
+	});
+
+	// Load a single file
+	preloader.load(base + "/asset/json/demo-spritemap.json");
+
+	preloader.bind('ready', function(assets) {
+
+		console.log('Preloader ready: ', assets);
+
+		// Load multiple files (that are not existing)
+		// ... will trigger 'error' Event after 3 seconds (due to timeout)
+		preloader.load([ 'not/here.png', 'not/there.jpeg' ]);
+
+	}, this);
+
+	preloader.bind('error', function(urls) {
+		console.warn('Preloader error for these urls: ', urls);
+	}, this);
+
+
+	// to pollute the global namespace
+	return null;
+
+});
+
+
+lychee.build('demo.Main', {
+	platform: 'html'
+});
+</script>
+</body>
+</html>   

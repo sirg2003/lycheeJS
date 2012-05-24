@@ -1,0 +1,35 @@
+{
+	"platform": {
+		"html": {
+
+			"ui": {
+				"Button": [ "js", "css" ],
+				"Checkbox": [ "js", "css" ],
+				"Input": [ "js", "css" ],
+				"Radios": [ "js", "css" ],
+				"Option": [ "js" ],
+				"Select": [ "js", "css" ],
+				"Textarea": [ "js" ],
+				"Lightbox": [ "js", "css" ]
+			},
+
+			"Builder": [ "js" ],
+			"Input": [ "js" ],
+			"Jukebox": [ "js" ],
+			"Preloader": [ "js" ],
+			"Renderer": [ "js" ],
+			"Track": [ "js" ]
+		}
+	},
+
+	"game": {
+		"Entity": [ "js" ],
+		"Loop": [ "js" ],
+		"Main": [ "js" ],
+		"State": [ "js" ],
+		"Jukebox": [ "js" ]
+	},
+
+	"Font": [ "js" ],
+	"Events": [ "js" ]
+}

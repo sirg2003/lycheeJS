@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+	<title>Immune - The Virus and Antibodies Game</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- core and platform-specific Builder -->
+	<script src="../../lychee/core.js"></script>
+	<script src="../../lychee/platform/html/Builder.js"></script>
+
+	<!-- build start -->
+	<script src="./source/Main.js"></script>
+	<link rel="stylesheet" href="./source/Main.css">
+
+</head>
+<body>
+
+<div id="game"></div>
+
+<script>
+// Set to true to see lychee debug messages
+// lychee.debug = true;
+
+lychee.rebase({
+	lychee: "../../lychee",
+	game: "./source"
+});
+
+lychee.build('game.Main', {
+	platform: 'html'
+}, function(lychee) {
+
+	// This will allow you to use this URL schema:
+	// /url/to/boilerplate/#music=true,sound=false
+
+	var params = window.location.hash.split(/#/)[1];
+
+	var settings = {
+		base: './asset'
+	};
+
+	if (params) {
+
+		params = params.split(',');
+
+		for (var p = 0, l = params.length; p < l; p++) {
+
+			var tmp = params[p].split('=');
+			settings[tmp[0]] = !isNaN(parseInt(tmp[1], 10)) ? parseInt(tmp[1], 10) : tmp[1];
+
+			if (settings[tmp[0]] === 'true') {
+				settings[tmp[0]] = true;
+			} else if (settings[tmp[0]] === 'false') {
+				settings[tmp[0]] = false;
+			}
+
+		}
+
+	}
+
+
+	new game.Main(settings);
+
+}, this);
+</script>
+</body>
+</html>    

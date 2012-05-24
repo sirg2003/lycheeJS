@@ -1,0 +1,13 @@
+{
+	"state": {
+		"Game": [ "js" ],
+		"Menu": [ "js" ]
+	},
+	"entity": {
+		"Text": [ "js" ]
+	},
+	"DeviceSpecificHacks": [ "js" ],
+	"Jukebox": [ "js" ],
+	"Main": [ "js", "css" ],
+	"Renderer": [ "js" ]
+}

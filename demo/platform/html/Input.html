@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+	<title>LycheeJS Input Demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- libraries -->
+	<script src="../../../lychee/core.js"></script>
+	<script src="../../../lychee/platform/html/Builder.js"></script>
+
+	<!-- demo -->
+	<link rel="stylesheet" href="../../source/Main.css">
+
+	<style>
+		.demo-toucharea {
+			display: block;
+			position: absolute;
+			width: 100px;
+			height: 100px;
+			border: 1px solid #fff;
+		}
+
+		#demo-toucharea1 {
+			background: rgba(255,0,0,0.5);
+			right: 50%;
+			bottom: 50%;
+		}
+		#demo-toucharea2 {
+			background: rgba(255,255,0,0.5);
+			top: 50%;
+			left: 50%;
+		}
+	</style>
+
+</head>
+<body>
+
+<div id="demo">
+	<div class="demo-toucharea" id="demo-toucharea1"></div>
+	<div class="demo-toucharea" id="demo-toucharea2"></div>
+
+	<p class="notification">
+		This is the event list fired by the lychee.Input instance (newest top):
+	</p>
+
+	<ul id="demo-log"></ul>
+
+</div>
+
+<script>
+lychee.rebase({
+	lychee: "../../../lychee"
+});
+
+
+lychee.define('demo.Main').requires([
+	'lychee.Input'
+]).exports(function(lychee) {
+
+	var _elements = {
+		log: document.getElementById('demo-log'),
+		toucharea1: document.getElementById('demo-toucharea1'),
+		toucharea2: document.getElementById('demo-toucharea2')
+	};
+
+	var Class = function() {
+
+		this.__input = new lychee.Input({
+			delay: 100,
+			fireSwipe: false,
+			fireModifier: false
+		});
+
+
+		this.__input.bind('key',    this.onKey, this);
+		this.__input.bind('ctrl-a', this.onCtrlA, this);
+		this.__input.bind('touch',  this.onTouch, this);
+
+		this.__input.bind('toucharea-demo1', function(delta) {
+			this.onToucharea('toucharea1', delta);
+		}, this);
+
+		this.__input.bind('toucharea-demo2', function(delta) {
+			this.onToucharea('toucharea2', delta);
+		}, this);
+
+
+		this.__input.addToucharea('demo1', {
+			element: _elements.toucharea1
+		});
+
+		this.__input.addToucharea('demo2', {
+			element: _elements.toucharea2
+		});
+
+	};
+
+
+	Class.prototype = {
+
+		log: function(name, delta) {
+
+			var item = document.createElement('li');
+			item.innerHTML = name + ' || delta: ' + delta + 'ms';
+
+			_elements.log.insertBefore(item, _elements.log.firstChild);
+
+		},
+
+		onKey: function(key, delta) {
+			this.log('Key (' + key + ')', delta);
+		},
+
+		onCtrlA: function(delta) {
+			this.log('[Ctrl] + [A]', delta);
+		},
+
+		onTouch: function(position, delta) {
+			this.log('Touch (x: ' + position.x + ' / y: ' + position.y + ')', delta);
+		},
+
+		onToucharea: function(id, delta) {
+			this.log('Toucharea (' + id + ')', delta);
+		}
+
+	};
+
+
+	return Class;
+
+});
+
+
+lychee.build('demo.Main', {
+	platform: 'html'
+}, function() {
+	new demo.Main();
+}, this);
+</script>
+</body>
+</html>   

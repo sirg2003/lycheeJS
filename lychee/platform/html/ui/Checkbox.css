@@ -1,0 +1,28 @@
+.lychee-checkbox {
+	margin: 0;
+	color: #fff;
+	background: #222;
+	border: 1px solid #fff;
+	border-radius: 6px;
+	box-shadow: inset 0px 0px 4px 4px rgba(0,0,0,0.5);
+}
+
+div.lychee-checkbox {
+	display: block;
+	position: relative;
+	width: 1em;
+	height: 1em;
+	margin: 5px 2px;
+}
+
+div.lychee-checkbox.active:before {
+	content: '';
+	display: block;
+	position: absolute;
+	width: 70%;
+	height: 70%;
+	margin: 15%;
+	background: #fff;
+	border-radius: 10px;
+}
+

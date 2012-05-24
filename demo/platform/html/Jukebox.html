@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+<head>
+	<title>LycheeJS Jukebox Demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- libraries -->
+	<script src="../../../lychee/core.js"></script>
+	<script src="../../../lychee/platform/html/Builder.js"></script>
+
+	<!-- demo -->
+	<link rel="stylesheet" href="../../source/Main.css">
+
+	<style>
+		.demo-toucharea {
+			display: block;
+			position: absolute;
+			width: 100px;
+			height: 100px;
+			border: 1px solid #fff;
+			text-align: center;
+			line-height: 30px;
+		}
+
+		#demo-toucharea1 {
+			background: rgba(255,0,0,0.5);
+			right: 50%;
+			bottom: 50%;
+		}
+		#demo-toucharea2 {
+			background: rgba(255,255,0,0.5);
+			left: 50%;
+			bottom: 50%;
+		}
+		#demo-toucharea3 {
+			background: rgba(255,0,255,0.5);
+			top: 50%;
+			right: 50%;
+		}
+		#demo-toucharea4 {
+			background: rgba(255,0,0,0.5);
+			top: 50%;
+			left: 50%;
+		}
+	</style>
+
+</head>
+<body>
+
+<div id="demo">
+
+	<div class="demo-toucharea" id="demo-toucharea1">Play Effect</div>
+	<div class="demo-toucharea" id="demo-toucharea2">Play Effect (Looping)</div>
+	<div class="demo-toucharea" id="demo-toucharea3">Mute / Unmute Effect</div>
+	<div class="demo-toucharea" id="demo-toucharea4">Toggle Music</div>
+
+	<p class="notification" id="demo-notification">
+		Always remember to offer multiple formats.<br>
+		My recommendation for real cross-platform usage: [ ogg, mp3, gsm, amr ]
+	</p>
+
+</div>
+
+<script>
+var base = "../..";
+
+lychee.rebase({
+	lychee: "../../../lychee",
+	demo: base
+});
+
+
+lychee.define('demo.Main').requires([
+	'lychee.Input',
+	'lychee.Track',
+	'lychee.Jukebox'
+]).exports(function(lychee) {
+
+	var _elements = {
+		toucharea1: document.getElementById('demo-toucharea1'),
+		toucharea2: document.getElementById('demo-toucharea2'),
+		toucharea3: document.getElementById('demo-toucharea3'),
+		toucharea4: document.getElementById('demo-toucharea4')
+	};
+
+	var Class = function() {
+
+		var track;
+
+		this.__jukebox = new lychee.Jukebox(20);
+
+		track = new lychee.Track('effect', {
+			base: base + '/asset/snd/effect',
+			formats: [ 'ogg', 'mp3', 'gsm', 'amr' ]
+		});
+		this.__jukebox.add(track);
+
+		track = new lychee.Track('music', {
+			base: base + '/asset/snd/music',
+			formats: [ 'ogg', 'mp3', 'gsm', 'amr' ]
+		});
+		this.__jukebox.add(track);
+
+
+		// Play music and loop it
+		this.__jukebox.play('music', true);
+
+
+		this.__input = new lychee.Input({
+			delay: 0,
+			fireModifier: false,
+			fireSwipe: false
+		});
+
+
+		this.__input.bind('toucharea-demo1', function() {
+			this.__jukebox.play('effect');
+		}, this);
+
+		this.__input.bind('toucharea-demo2', function() {
+			this.__jukebox.play('effect', true);
+		}, this);
+
+		this.__input.bind('toucharea-demo3', function() {
+
+			if (this.__jukebox.isMuted('effect')) {
+				this.__jukebox.unmute('effect');
+			} else {
+				this.__jukebox.mute('effect');
+			}
+
+		}, this);
+
+		this.__input.bind('toucharea-demo4', function() {
+			this.__jukebox.toggle('music', true);
+		}, this);
+
+
+		this.__input.addToucharea('demo1', {
+			element: _elements.toucharea1
+		});
+
+		this.__input.addToucharea('demo2', {
+			element: _elements.toucharea2
+		});
+
+		this.__input.addToucharea('demo3', {
+			element: _elements.toucharea3
+		});
+
+		this.__input.addToucharea('demo4', {
+			element: _elements.toucharea4
+		});
+
+	};
+
+
+	return Class;
+
+});
+
+
+lychee.build('demo.Main', {
+	platform: 'html'
+}, function() {
+	new demo.Main();
+}, this);
+</script>
+</body>
+</html>   

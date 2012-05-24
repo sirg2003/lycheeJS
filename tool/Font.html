@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+<head>
+	<title>LycheeJS Font Tool</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- libraries -->
+	<script src="../lychee/core.js"></script>
+	<script src="../lychee/platform/html/Builder.js"></script>
+
+	<!-- demo -->
+	<link rel="stylesheet" href="../demo/source/Main.css">
+
+	<style>
+		body {
+			overflow: hidden;
+		}
+		#demo-navi {
+			padding: 1em;
+		}
+		#demo-navi label {
+			display: inline-block;
+			min-width: 200px;
+			height: 30px;
+			text-align: left;
+			vertical-align: top;
+		}
+		#demo-navi input,
+		#demo-navi select {
+			display: inline-block;
+			min-width: 200px;
+			text-align: left;
+			vertical-align: top;
+		}
+		#demo-canvas {
+			display: none;
+			margin: 1em;
+			background: #fff;
+			-webkit-font-smoothing: antialiased;
+		}
+		#demo-export textarea {
+			display: block;
+			width: 100%;
+			min-height: 16em;
+		}
+		#demo-export-wrapper {
+			overflow: auto;
+		}
+		#demo-export-wrapper img {
+			border: 2px solid #8b2323;
+		}
+	</style>
+
+</head>
+<body>
+
+<div id="demo">
+	<h1>LycheeJS Font Export Tool</h1>
+	<p class="notification">
+		Use this tool to export locally (OS- and Web-) installed
+		fonts for usage with the lycheeJS framework.
+	</p>
+	<div id="demo-navi"></div>
+	<canvas id="demo-canvas"></canvas>
+</div>
+
+<script>
+lychee.rebase({
+	lychee: "../lychee",
+	tool: "./source"
+});
+
+
+
+
+lychee.define('tool.Main').tags({
+	platform: 'html'
+}).requires([
+	'tool.Font',
+	'lychee.ui.*'
+]).exports(function() {
+
+	var _demo = document.getElementById('demo'),
+		_canvas = document.getElementById('demo-canvas'),
+		_navi = document.getElementById('demo-navi');
+
+	var _tool = new tool.Font(_canvas);
+
+	function _add(description, element) {
+
+		if (description !== null) {
+			var label = document.createElement('label');
+			label.innerHTML = description;
+			_navi.appendChild(label);
+		}
+
+		element.addTo(_navi);
+
+		var br = document.createElement('br');
+		_navi.appendChild(br);
+
+	};
+
+
+
+	var settings = lychee.extend({}, tool.Font.prototype.defaults, {
+		font: '8bitoperator JVE',
+		size: 32,
+		spacing: 3,
+		outline: 1,
+		color: '#fff'
+	});
+
+
+	_add('Font Family', new lychee.ui.Input('text', settings.font, function(value) {
+		settings.font = value;
+	}, this));
+
+	_add('Font Size', new lychee.ui.Input('number', settings.size, function(value) {
+		settings.size = value;
+	}, this));
+
+	var select = new lychee.ui.Select(function(value) {
+		settings.style = value;
+	}, this);
+
+	var styles = [ 'normal', 'bold', 'italic' ];
+	for (var s = 0, l = styles.length; s < l; s++) {
+		new lychee.ui.Option(styles[s], styles[s]).addTo(select);
+	}
+
+	_add('Font Style', select);
+
+
+	_add('Color', new lychee.ui.Input('text', settings.color, function(value) {
+		if (value.charAt(0) === '#') {
+			settings.color = value;
+		} else {
+			return false;
+		}
+	}, this));
+
+	_add('Spacing', new lychee.ui.Input('number', settings.spacing, function(value) {
+		settings.spacing = value;
+	}, this));
+
+	_add('Outline', new lychee.ui.Input('number', settings.outline, function(value) {
+		settings.outline = value;
+	}, this));
+
+
+	var sendToServer = function(images) {
+
+		var url = './source/Font.php';
+
+		var id = settings.firstChar;
+		for (var i = 0, l = images.length; i < l; i++) {
+
+			var data = images[i].src;
+
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', url, false);
+			xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			xhr.send('id=' + id + '&data=' + data);
+
+			id++;
+
+		}
+
+	};
+
+
+	_add(null, new lychee.ui.Button('export', function() {
+
+		var data = _tool.export(settings);
+
+		if (settings.spritemap === true) {
+
+			var lightbox = new lychee.ui.Lightbox('demo-export', 'Exported Font');
+			var desc;
+
+			desc = document.createElement('h3');
+			desc.innerHTML = '1. Save Image:';
+			lightbox.add(desc);
+
+			var wrapper = document.createElement('div');
+			wrapper.id = 'demo-export-wrapper';
+			wrapper.appendChild(data.sprite);
+			lightbox.add(wrapper);
+
+			desc = document.createElement('h3');
+			desc.innerHTML = '2. Use lychee.Font:';
+			lightbox.add(desc);
+
+			var content = '// Preload image, then create lychee.Font instance:\n\n';
+			content += 'new lychee.Font(image, ' + data.settings + '\n);';
+			var textarea = new lychee.ui.Textarea(content);
+			lightbox.add(textarea);
+
+			lightbox.addTo(_demo);
+			lightbox.show();
+
+		} else if (window.confirm('Want to send the sliced images to the server?') === true) {
+
+			sendToServer(data.images);
+
+		}
+
+	}, this));
+
+});
+
+
+
+lychee.build('tool.Main', {
+	platform: 'html'
+});
+</script>
+</body>
+</html>   

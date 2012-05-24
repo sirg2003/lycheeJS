@@ -1,0 +1,16 @@
+select {
+	width: 5.8em;
+	margin: 0;
+	padding: 0;
+	color: #fff;
+	background: #222;
+	border: 1px solid #fff;
+	border-radius: 6px;
+	box-shadow: inset 0px 0px 4px 4px rgba(0,0,0,0.5);
+}
+
+select option {
+	margin: 2px 0px;
+	padding: 0px 5px;
+}
+

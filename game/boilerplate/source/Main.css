@@ -1,0 +1,14 @@
+
+body {
+	margin: 0;
+	padding: 0;
+	color: #fff;
+	background: #444;
+}
+
+#game > canvas {
+	display: block;
+	margin: 0 auto;
+	/* border: 3px solid #888; */
+	background: #222;
+}
