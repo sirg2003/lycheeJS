@@ -30,6 +30,10 @@
 		"Jukebox": [ "js" ]
 	},
 
+	"parser": {
+		"Tokenizer": [ "js" ]
+	},
+
 	"Font": [ "js" ],
 	"Events": [ "js" ]
 }

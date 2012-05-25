@@ -440,6 +440,7 @@ if (Object.prototype.toString.call(this.lychee) !== '[object Object]') {
 
 					}
 
+
 					if (urls.length === 0) {
 						throw new Error('Package Index is corrupt, could not find ' + id);
 					}
@@ -519,7 +520,7 @@ if (Object.prototype.toString.call(this.lychee) !== '[object Object]') {
 				var url = base + '/package.json';
 
 				var xhr = new XMLHttpRequest();
-				xhr.open('GET', url, true);
+				xhr.open('GET', url, false);
 				xhr.setRequestHeader('Content-Type', 'application/json; charset=utf8');
 
 				var that = this;
@@ -533,6 +534,7 @@ if (Object.prototype.toString.call(this.lychee) !== '[object Object]') {
 						} catch(e) {
 
 							if (lychee.debug === true) {
+								console.warn('Exception: ' + e.message);
 								console.warn('No Package Data found for "' + id + '" at base "' + base + '", so tagging is disabled for this package.');
 							}
 

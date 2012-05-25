@@ -70,39 +70,6 @@ if (Object.prototype.toString.call(this.lychee) !== '[object Object]') {
 	};
 
 
-	var _setupNamespace = function(namespace, scope, offset) {
-
-		offset = offset || 0;
-
-		var ns = namespace.split('.');
-
-
-	};
-
-	var _getNamespace = function(index, pointer) {
-
-		for (var i = 0; i < index.length; i++) {
-			pointer = pointer[index[i]];
-		}
-
-		return pointer;
-
-	};
-
-	var _exportClass = function(lyClass, scope) {
-
-		_setupNamespace(lyClass._space, scope);
-
-		var pointer = scope;
-		var exportNS = _getNamespace(lyClass._space.split('.'), pointer);
-
-		if (lyClass._exports !== null) {
-			exportNS[lyClass._name] = lyClass._exports.call(lychee, lychee);
-		}
-
-	};
-
-
 	lychee.build = function(start, tags, callback, scope) {
 
 		var builder = new lychee.Builder(_tree, _base, tags);

@@ -32,6 +32,10 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 
 	};
 
+	function is_alphanumeric_character(character) {
+		return is_digit(character) || is_unicode_letter(character);
+	};
+
 	function is_digit(character) {
 
 		var chr = character.charCodeAt(0);
@@ -117,7 +121,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 		'typeof',
 		'void',
 		'~', '&', '&&', '&=', '|', '||', '|=', '^', '^=',
-		'>>', '>>=', '<<', '<<=', '>>>', '>>>='
+		'>>', '>>=', '<<', '<<=', '>>>', '>>>=',
 		'=', '<', '>', '<=', '>=', '==', '===', '!=', '!==',
 		'!', '?',
 		'+', '++', '-', '--', '*', '/', '%',
@@ -148,6 +152,10 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 			'+', '-', '*', '%', '=',
 			'&', '|', '~', '<', '>',
 			'!', '?'
+		]),
+
+		UNARY_POSTFIX: array_to_hash([
+			'--', '++'
 		]),
 
 		PUNC: array_to_hash([
@@ -269,9 +277,9 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 			isComment = isComment === true ? true : false;
 
 			this.__regex_allowed = (
-				(type === 'operator' && Object.prototype.hasOwnProperty.call(_UNARY_POSTFIX, value))
+				(type === 'operator' && Object.prototype.hasOwnProperty.call(_CHARS.UNARY_POSTFIX, value))
 				|| (type === 'keyword' && Object.prototype.hasOwnProperty.call(_KEYWORDS_BEFORE_EXPRESSION, value))
-				|| (type === 'punc' && Object.prototype.hasOwnProperty.call(_PUNC_BEFORE_EXPRESSION, value))
+				|| (type === 'punc' && Object.prototype.hasOwnProperty.call(_CHARS.PUNC_BEFORE_EXPRESSION, value))
 			);
 
 
@@ -291,7 +299,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 				token.commentsbefore = this.__commentsbefore;
 				this.__commentsbefore = [];
 
-				for (var c = 0, l = token.commentsbefore.length; c < l, c++) {
+				for (var c = 0, l = token.commentsbefore.length; c < l; c++) {
 					token.newlinebefore = token.newlinebefore || token.commentsbefore[c].newlinebefore;
 				}
 
@@ -380,6 +388,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 				hasX = false,
 				hasDot = prefix === '.';
 
+console.log(prefix);
 
 			var number = this.readWhile(function(character, position) {
 
@@ -392,7 +401,9 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 						return true;
 					}
 
-				} else if (hasX === false && (character === 'E' || character === 'e')) {
+				}
+
+				if (hasX === false && (character === 'E' || character === 'e')) {
 
 					if (hasE === true) {
 						return false;
@@ -401,6 +412,37 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 						afterE = true;
 						return true;
 					}
+
+				}
+
+				if (character === '-') {
+
+					if (afterE === true || (position === 0 && !prefix)) {
+						return true;
+					}
+
+					return false;
+
+				}
+
+				if (character === '+') {
+					return afterE;
+				}
+
+				afterE = false;
+
+				if (character === '.') {
+
+					if (hasDot === false && hasX === false && hasE === false) {
+						hasDot = true;
+						return true;
+					}
+
+					return false;
+
+				}
+
+				return is_alphanumeric_character(character);
 
 			});
 
@@ -517,7 +559,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 				this.__position = this.__source.length;
 			} else {
 				comment = this.__source.substring(this.__position, index);
-				this.__position = i;
+				this.__position = index;
 			}
 
 
@@ -575,7 +617,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 
 					character = this.readEscapedChar();
 
-					if (is_identifier_char(character) === false) {
+					if (is_identifier_character(character) === false) {
 
 						throw new _Error(
 							'Unicode Character ' + character.charCodeAt(0) + 'is not a valid Identifier',
@@ -593,7 +635,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 					if (character === "\\") {
 						escaped = backslash = true;
 						this.next();
-					} else if (is_identifier_char(character) === true) {
+					} else if (is_identifier_character(character) === true) {
 						name += this.next();
 					} else {
 						break;
@@ -707,6 +749,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 			this.next();
 
 			var regex_allowed = this.__regex_allowed;
+
 
 			switch(this.peek()) {
 
