@@ -237,7 +237,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 			return this.__source.charAt(this.__position);
 		},
 
-		next: function(inString) {
+		__next: function(inString) {
 
 			var character = this.__source.charAt(this.__position++);
 			if (!character) {
@@ -315,7 +315,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 		skipWhitespace: function() {
 
 			while(Object.prototype.hasOwnProperty.call(_CHARS.WHITESPACE, this.peek())) {
-				this.next();
+				this.__next();
 			}
 
 		},
@@ -327,7 +327,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 				position = 0;
 
 			while(character && callback(character, position++) === true) {
-				value += this.next();
+				value += this.__next();
 				character = this.peek();
 			}
 
@@ -337,7 +337,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 
 		readEscapedChar: function(inString) {
 
-			var character = this.next();
+			var character = this.__next();
 
 			switch (character) {
 				case "n": return "\n";
@@ -362,7 +362,7 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 
 			for (var n = bytes; n > 0; --n) {
 
-				var digit = parseInt(this.next(), 16);
+				var digit = parseInt(this.__next(), 16);
 				if (isNaN(digit)) {
 
 					throw new _Error(
@@ -388,7 +388,6 @@ lychee.define('lychee.Tokenizer').exports(function(lychee, global) {
 				hasX = false,
 				hasDot = prefix === '.';
 
-console.log(prefix);
 
 			var number = this.readWhile(function(character, position) {
 
@@ -481,7 +480,7 @@ console.log(prefix);
 			var str = '';
 
 
-			var quote = this.next();
+			var quote = this.__next();
 			if (quote === null) {
 
 				throw new _Error(
@@ -494,7 +493,7 @@ console.log(prefix);
 
 			for (;;) {
 
-				var character = this.next();
+				var character = this.__next();
 
 				// read octal escape sequence
 				if (character === "\\") {
@@ -548,7 +547,7 @@ console.log(prefix);
 
 		readLineComment: function() {
 
-			this.next();
+			this.__next();
 
 			var index = this.find("\n");
 			var comment = '';
@@ -569,7 +568,7 @@ console.log(prefix);
 
 		readMultilineComment: function() {
 
-			this.next();
+			this.__next();
 
 			var index = this.find("*/");
 			if (index === null) {
@@ -634,9 +633,9 @@ console.log(prefix);
 
 					if (character === "\\") {
 						escaped = backslash = true;
-						this.next();
+						this.__next();
 					} else if (is_identifier_character(character) === true) {
-						name += this.next();
+						name += this.__next();
 					} else {
 						break;
 					}
@@ -667,7 +666,7 @@ console.log(prefix);
 			var inClass = false;
 
 			var character = null;
-			while((character = this.next()) !== null) {
+			while((character = this.__next()) !== null) {
 
 				if (previousBackslash === true) {
 					regexp += "\\" + character;
@@ -695,13 +694,13 @@ console.log(prefix);
 
 		readOperator: function(prefix) {
 
-			var operator = prefix || this.next();
+			var operator = prefix || this.__next();
 
 			if (this.peek()) {
 
 				var tmp = operator + this.peek();
 				if (Object.prototype.hasOwnProperty.call(_OPERATORS, tmp)) {
-					this.next();
+					this.__next();
 					operator = tmp;
 				}
 
@@ -734,7 +733,7 @@ console.log(prefix);
 
 		handleDot: function() {
 
-			this.next();
+			this.__next();
 
 			if (is_digit(this.peek())) {
 				return this.readNumber('.');
@@ -746,7 +745,7 @@ console.log(prefix);
 
 		handleSlash: function() {
 
-			this.next();
+			this.__next();
 
 			var regex_allowed = this.__regex_allowed;
 
@@ -756,12 +755,12 @@ console.log(prefix);
 				case "/":
 					this.__commentsbefore.push(this.readLineComment());
 					this.__regex_allowed = regex_allowed;
-					return this.nextToken();
+					return this.next();
 
 				case "*":
 					this.__commentsbefore.push(this.readMultilineComment());
 					this.__regex_allowed = regex_allowed;
-					return this.nextToken();
+					return this.next();
 
 				default:
 
@@ -775,10 +774,7 @@ console.log(prefix);
 
 		},
 
-
-
-
-		nextToken: function() {
+		next: function() {
 
 			this.skipWhitespace();
 
@@ -799,7 +795,7 @@ console.log(prefix);
 
 			} else if (Object.prototype.hasOwnProperty.call(_CHARS.PUNC, character)) {
 
-				return this.token('punc', this.next());
+				return this.token('punc', this.__next());
 
 			} else if (Object.prototype.hasOwnProperty.call(_CHARS.OPERATOR, character)) {
 
