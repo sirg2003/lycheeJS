@@ -18,6 +18,13 @@ lychee.define('lychee.Parser').requires([
 		return token.type === type && (value == null || token.value === value);
 	};
 
+	var _ATOMIC_START_TOKENS = array_to_hash([
+		'atom', 'name', 'num', 'regexp', 'string'
+	]);
+
+	var _STATEMENTS_WITH_LABELS = array_to_hash([
+		'do', 'for', 'switch', 'while'
+	]);
 
 	var _UNARY_PREFIX = array_to_hash([
 		'typeof', 'void', 'delete',
@@ -27,6 +34,7 @@ lychee.define('lychee.Parser').requires([
 	var _UNARY_POSTFIX = array_to_hash([
 		'++', '--'
 	]);
+
 
 	var _Node = function(name, start, end) {
 		this.name = name;
@@ -96,6 +104,20 @@ lychee.define('lychee.Parser').requires([
 
 		},
 
+		__process: function(value) {
+
+			if (value instanceof Function) {
+				value = value();
+			}
+
+			for (var a = 1, l = arguments.length; a < l; a++) {
+				arguments[a]();
+			}
+
+			return value;
+
+		},
+
 		__throw: function(message) {
 
 			throw new _Error(
@@ -124,6 +146,129 @@ lychee.define('lychee.Parser').requires([
 
 
 			this.__throw('Unexpected Token ' + this.__current.type + ', expected ' + type);
+
+		},
+
+		next: function() {
+
+			if (
+				is_token(this.__current, 'operator', '/') === true
+				|| is_token(this.__current, 'operator', '/=') === true
+			) {
+				// Force RegExp
+				this.__peeked = null;
+				this.__current = this.__source.next(this.__current.value.substr(1));
+			}
+
+
+			switch (this.__current.type) {
+
+				case "string":
+
+					var directive = this.__inDirectives,
+						statement = this.__simpleStatement();
+
+					if (
+						directive === true
+						&& statement[1][0] === 'string'
+						&& is_token(this.__current, 'punc', ',') === true
+					) {
+						return this.as('directive', statement[1][1]);
+					}
+
+
+					return statement;
+
+				case "num":
+				case "regexp":
+				case "operator":
+				case "atom":
+
+
+					return this.__simpleStatement();
+
+				case "name":
+
+					if (is_token(this.peek(), 'punc', ':')) {
+						var label = this.__process(this.__current.value, this.next, this.next);
+						return this.__labeledStatement(label);
+					}
+
+					return this.__simpleStatement();
+
+				case "punc":
+
+					switch(this.__current.value) {
+
+						case "{":
+							return this.as('block', this.__block());
+
+						case "[":
+						case "(":
+							return this.__simpleStatement();
+
+						case ";":
+							this.next();
+							return this.as('block');
+
+						default:
+							this.__throwUnexpected();
+
+					}
+
+			}
+
+		},
+
+
+
+		/*
+		 * STATEMENTS
+		 */
+		__labeledStatement: function(label) {
+
+			this.__labels.push(label);
+
+			var start = this.__current,
+				statement = this.statement();
+
+			if (
+				exigentMode === true
+				&& Object.prototype.hasOwnProperty(_STATEMENTS_WITH_LABELS, statement[0]) === false
+			) {
+				this.__throwUnexpected(start);
+			}
+
+			this.__labels.pop();
+
+			return this.as('label', label, statement);
+
+		},
+
+		__simpleStatement: function() {
+			return this.as('stat', this.__process(this.__expression, this.__semicolon));
+		},
+
+
+
+		__block: function() {
+
+			this.expect("{");
+
+			var arr = [];
+			while (is_token(this.__current, 'punc', '}') === false) {
+
+				if (is_token(this.__current, 'EOF')) {
+					this.__throwUnexpected();
+				}
+
+				arr.push(this.statement());
+
+			}
+
+			this.next();
+
+			return arr;
 
 		}
 
