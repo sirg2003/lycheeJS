@@ -14,6 +14,16 @@ lychee.define('lychee.Parser').requires([
 
 	};
 
+	function is_member(name, array) {
+
+		for (var a = 0, l = array.length; a < l; a++) {
+			if (array[a] === name) return true;
+		}
+
+		return false;
+
+	};
+
 	function is_token(token, type, value) {
 		return token.type === type && (value == null || token.value === value);
 	};
@@ -48,11 +58,13 @@ lychee.define('lychee.Parser').requires([
 
 
 
-	var Class = function(source) {
+	var Class = function(source, exigentMode) {
 
 		if (!source instanceof lychee.Tokenizer) {
 			source = new lychee.Tokenizer(source, true);
 		}
+
+		exigentMode = exigentMode === true ? true : false;
 
 
 		this.__source = source;
@@ -60,6 +72,9 @@ lychee.define('lychee.Parser').requires([
 		this.__previous = null;
 		this.__current = null;
 		this.__peeked = null;
+
+		this.__exigentMode = exigentMode;
+		this.__currentLoop = 0;
 
 		this.__current = this.next();
 
@@ -216,6 +231,36 @@ lychee.define('lychee.Parser').requires([
 
 					}
 
+				case "keyword":
+
+					switch(this.__process(this.__current.value, next)) {
+
+						case "break":
+							return this.__break_continue('break');
+
+						case "continue":
+							return this.__break_continue('continue');
+
+						case "debugger":
+							this.__semicolon();
+							return this.as('debugger');
+
+						case "do":
+
+							return (function(body, that) {
+								that.expect('keyword', 'while');
+								return as ('do', that.__process(that.__parenthesised, that.__semicolon), body);
+							})(this.__inLoop(this.next));
+
+						case "for":
+							return this.__for();
+
+						case "function":
+							return this.__function();
+
+					}
+
+
 			}
 
 		},
@@ -223,14 +268,32 @@ lychee.define('lychee.Parser').requires([
 
 
 		/*
-		 * STATEMENTS
+		 * STUFF
 		 */
+		__canInsertSemicolon: function() {
+
+			if (this.__exigentMode === false) {
+
+				if (
+					this.__current.newlinebefore === true
+					|| is_token(this.__current, 'EOF')
+					|| is_token(this.__current, 'punc', '}')
+				) {
+					return true;
+				}
+
+			}
+
+			return false;
+
+		},
+
 		__labeledStatement: function(label) {
 
 			this.__labels.push(label);
 
 			var start = this.__current,
-				statement = this.statement();
+				statement = this.next();
 
 			if (
 				exigentMode === true
@@ -249,6 +312,17 @@ lychee.define('lychee.Parser').requires([
 			return this.as('stat', this.__process(this.__expression, this.__semicolon));
 		},
 
+		__inLoop: function(callback) {
+
+			try {
+				++this.__currentLoop;
+				return callback();
+			} finally {
+				--this.__currentLoop;
+			}
+
+		},
+
 
 
 		__block: function() {
@@ -262,13 +336,101 @@ lychee.define('lychee.Parser').requires([
 					this.__throwUnexpected();
 				}
 
-				arr.push(this.statement());
+				arr.push(this.next());
 
 			}
 
 			this.next();
 
 			return arr;
+
+		},
+
+		__break_continue: function(type) {
+
+			type = typeof type === 'string' ? type : null;
+
+			var name = null;
+			if (this.__canInsertSemicolon() === false) {
+				name = is_token(this.__current, 'name') ? this.__current.value : null;
+			}
+
+
+			if (name !== null) {
+
+				this.next();
+
+				if (is_member(name, this.__labels) === false) {
+					this.__throw('Label ' + name + 'without matching loop or statement');
+				}
+
+			} else if (this.__currentLoop === 0) {
+				this.__throw(type + ' not inside a loop or switch statement');
+			}
+
+			this.__semicolon();
+
+			return this.as(type, name);
+
+		},
+
+		__for: function() {
+
+			this.expect("(");
+
+			var init = null;
+			if (is_token(this.__current, 'punc', ';') === false) {
+
+				// for (var x...)
+				if (is_token(this.__current, 'keyword', 'var') === true) {
+					this.next();
+					init = this.__var(true);
+				} else {
+					init = this.__expression(true, true);
+				}
+
+				if (is_token(this.__current, 'operator', 'in') === true) {
+
+					if (init[0] === 'var' && init[1].length > 1) {
+						this.__throw('Only one variable declaration allowed in for...in loop');
+					}
+
+					return this.__for_in(init);
+
+				}
+
+				return this.__for_loop(init);
+
+			}
+
+		},
+
+		__for_in: function(init) {
+		},
+
+		__for_loop: function(init) {
+
+			this.expect(';');
+
+			var test = is_token(this.__current, 'punc', ';') ? null : this.__expression();
+
+			this.expect(';');
+
+			var step = is_token(this.__current, 'punc', ')') ? null : this.__expression();
+
+			this.expect(')');
+
+			return this.as('for', init, test, loop, this.__inLoop(this.next));
+
+		},
+
+		__semicolon: function() {
+
+			if (is_token(this.__current, 'punc', ';') === true) {
+				this.next();
+			} else if (this.__canInsertSemicolon() === false) {
+				this.__throwUnexpected();
+			}
 
 		}
 
