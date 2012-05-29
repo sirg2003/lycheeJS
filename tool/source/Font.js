@@ -3,6 +3,8 @@ lychee.define('tool.Font').tags({
 	platform: 'html'
 }).requires([
 	'lychee.Font'
+]).includes([
+	'lychee.Events'
 ]).exports(function(lychee, global) {
 
 	var Class = function(canvas) {
@@ -10,6 +12,14 @@ lychee.define('tool.Font').tags({
 		this.__canvas = canvas instanceof HTMLCanvasElement ? canvas : document.createElement('canvas');
 		this.__ctx = this.__canvas.getContext('2d');
 
+		lychee.Events.call(this, 'fonttool');
+
+	};
+
+	Class.SPRITEMAP = {
+		none: 0,
+		x:    1,
+		xy:   2
 	};
 
 
@@ -23,9 +33,9 @@ lychee.define('tool.Font').tags({
 			spacing: 1,
 			outline: 1,
 			outlineColor: '#000',
-			firstChar: 32,
+			firstChar: 33,
 			lastChar: 127,
-			spritemap: true
+			spritemap: Class.SPRITEMAP.x
 		},
 
 		__updateFont: function() {
@@ -45,9 +55,9 @@ lychee.define('tool.Font').tags({
 
 			this.__ctx.fillStyle = this.settings.color;
 
-			for (var c = 0, margin = 0; c < charset.length; c++) {
-				this.__ctx.fillText(charset[c], margin, offsetY);
-				margin += widthMap[c] + 1 + this.settings.spacing * 2;
+			for (var c = 0, margin = this.settings.spacing; c < charset.length; c++) {
+				this.__ctx.fillText(charset[c], margin - 1, offsetY);
+				margin += widthMap[c] + this.settings.spacing * 2;
 			}
 
 		},
@@ -60,15 +70,15 @@ lychee.define('tool.Font').tags({
 
 			var outline = this.settings.outline;
 
-			for (var c = 0, margin = 0; c < charset.length; c++) {
+			for (var c = 0, margin = this.settings.spacing; c < charset.length; c++) {
 
 				for (var x = -1 * outline; x <= outline; x++) {
 					for (var y = -1 * outline; y <= outline; y++) {
-						this.__ctx.fillText(charset[c], margin + x, offsetY + y);
+						this.__ctx.fillText(charset[c], margin + x - 1, offsetY + y);
 					}
 				}
 
-				margin += widthMap[c] + 1 + this.settings.spacing * 2;
+				margin += widthMap[c] + this.settings.spacing * 2;
 
 			}
 
@@ -144,16 +154,16 @@ lychee.define('tool.Font').tags({
 
 
 			// 1. Measure the approximate the canvas dimensions
-			var width = 0,
+			var width = this.settings.spacing,
 				widthMap = [];
 
 			for (var i = 0; i < charset.length; i++) {
 
 				var m = this.__ctx.measureText(charset[i]);
-				var charWidth = Math.max(1, Math.ceil(m.width));
+				var charWidth = Math.max(1, Math.ceil(m.width)) + this.settings.outline * 2;
 
 				widthMap.push(charWidth);
-				width += charWidth + 1 + this.settings.spacing * 2;
+				width += charWidth + this.settings.spacing * 2;
 
 			}
 
@@ -195,60 +205,187 @@ lychee.define('tool.Font').tags({
 			sprite.src = this.__canvas.toDataURL('image/png');
 
 
-			var lycheeFontSettings = {
+
+			var settings = {
 				charset: charset.join(''),
 				kerning: 0,
-				spacing: this.settings.spacing,
-				widthMap: widthMap
+				spacing: this.settings.spacing
 			};
 
 
-			if (this.settings.spritemap === true) {
+			var that = this;
+			sprite.onload = function() {
+				that.__draw(this, that.__canvas.width, that.__canvas.height, settings, widthMap);
+			};
 
-				return {
-					sprite: sprite,
-					settings: JSON.stringify(lycheeFontSettings)
-				};
-
-			} else {
-
-				var images = [];
-				var height = this.__canvas.height;
-				var outline = this.settings.outline;
-
-				for (var w = 0, margin = 0, l = widthMap.length; w < l; w++) {
-
-					this.__canvas.width = widthMap[w] + this.settings.spacing * 2 + 2;
-					this.__canvas.height = height;
-
-					this.__ctx.drawImage(
-						sprite,
-						margin - this.settings.spacing - 1,
-						0,
-						widthMap[w] + this.settings.spacing * 2 + 2,
-						height,
-						0,
-						0,
-						widthMap[w] + this.settings.spacing * 2 + 2,
-						height
-					);
+		},
 
 
-					var image = new Image();
-					image.src = this.__canvas.toDataURL('image/png');
+		__draw: function(sprite, width, height, settings, widthMap) {
 
-					images.push(image);
+			switch (this.settings.spritemap) {
 
-					margin += widthMap[w] + 1 + this.settings.spacing * 2;
+				case Class.SPRITEMAP.none:
 
-				}
+					var images = [];
+					var height = this.__canvas.height;
+					var outline = this.settings.outline;
+
+					for (var w = 0, margin = this.settings.spacing, l = widthMap.length; w < l; w++) {
+
+						var frameWidth = widthMap[w];
+
+						this.__canvas.width = frameWidth;
+						this.__canvas.height = height;
+
+						this.__ctx.drawImage(
+							sprite,
+							margin - this.settings.spacing,
+							0,
+							frameWidth,
+							height,
+							0,
+							0,
+							frameWidth,
+							height
+						);
 
 
-				return {
-					sprite: sprite,
-					images: images,
-					settings: JSON.stringify(lycheeFontSettings)
-				};
+						var image = new Image();
+						image.src = this.__canvas.toDataURL('image/png');
+
+						images.push(image);
+
+						margin += frameWidth + this.settings.spacing * 2;
+
+					}
+
+
+					this.trigger('ready', [{
+						sprite: sprite,
+						images: images,
+						settings: JSON.stringify(settings)
+					}]);
+
+				break;
+
+
+				case Class.SPRITEMAP.x:
+
+					settings.map = widthMap;
+
+					this.trigger('ready', [{
+						sprite: sprite,
+						settings: JSON.stringify(settings)
+					}]);
+
+				break;
+
+				case Class.SPRITEMAP.xy:
+
+					// 1. Determination of best matching sprite width
+					var spriteWidth = Math.round(Math.sqrt(width * height));
+					var spriteHeight = height;
+
+
+					// 2. Determination of sprite height && generation of spritemap
+					var spriteMap = [];
+					var offsetX = 0;
+					var offsetY = 0;
+					var srcOffset = 0;
+					for (var w = 0, l = widthMap.length; w < l; w++) {
+
+						var frame = {
+							width: widthMap[w],
+							height: height,
+							sx: srcOffset,
+							sy: 0,
+							dx: offsetX,
+							dy: offsetY
+						};
+
+						spriteMap.push(frame);
+
+
+						srcOffset += frame.width + this.settings.spacing * 2;
+						offsetX += frame.width + this.settings.spacing;
+
+
+						var nextFrameWidth = 0;
+						if (widthMap[w + 1] !== undefined) {
+							nextFrameWidth = widthMap[w + 1];
+						}
+
+
+						if (offsetX + nextFrameWidth > spriteWidth) {
+							offsetX = 0;
+							offsetY += height;
+							spriteHeight += height;
+						}
+
+					}
+
+
+					// 3. Re-draw the sprite image
+					this.__canvas.width = spriteWidth;
+					this.__canvas.height = spriteHeight;
+
+
+					for (var s = 0, l = spriteMap.length; s < l; s++) {
+
+						var frame = spriteMap[s];
+
+						this.__ctx.drawImage(
+							sprite,
+							frame.sx,
+							frame.sy,
+							frame.width,
+							frame.height,
+							frame.dx,
+							frame.dy,
+							frame.width,
+							frame.height
+						);
+
+					}
+
+
+					// 4. Regenerate sprite image (data)
+					sprite = new Image();
+					sprite.src = this.__canvas.toDataURL('image/png');
+
+
+					// 5. Regenerate sprite map
+					widthMap = [];
+
+					for (var s = 0, l = spriteMap.length; s < l; s++) {
+
+						var frame = spriteMap[s];
+
+						widthMap.push({
+							width: frame.width,
+							height: frame.height,
+							x: frame.dx,
+							y: frame.dy
+						});
+
+					}
+
+
+					settings.map = widthMap;
+
+
+					this.trigger('ready', [{
+						sprite: sprite,
+						settings: JSON.stringify(settings)
+					}]);
+
+
+					break;
+
+
+				default:
+					return null;
 
 			}
 

@@ -35,7 +35,7 @@
 		#demo-canvas {
 			display: none;
 			margin: 1em;
-			background: #fff;
+			background: #444;
 			-webkit-font-smoothing: antialiased;
 		}
 		#demo-export textarea {
@@ -78,13 +78,14 @@ lychee.define('tool.Main').tags({
 }).requires([
 	'tool.Font',
 	'lychee.ui.*'
-]).exports(function() {
+]).exports(function(lychee, global) {
 
 	var _demo = document.getElementById('demo'),
 		_canvas = document.getElementById('demo-canvas'),
 		_navi = document.getElementById('demo-navi');
 
-	var _tool = new tool.Font(_canvas);
+	var _tool = tool;
+	var _generator = new tool.Font(_canvas);
 
 	function _add(description, element) {
 
@@ -105,9 +106,9 @@ lychee.define('tool.Main').tags({
 
 	var settings = lychee.extend({}, tool.Font.prototype.defaults, {
 		font: '8bitoperator JVE',
-		size: 32,
-		spacing: 3,
-		outline: 1,
+		size: 64,
+		spacing: 7,
+		outline: 3,
 		color: '#fff'
 	});
 
@@ -169,43 +170,69 @@ lychee.define('tool.Main').tags({
 
 	};
 
+	_generator.bind('ready', function(data) {
 
-	_add(null, new lychee.ui.Button('export', function() {
+		if (data === null) return;
 
-		var data = _tool.export(settings);
 
-		if (settings.spritemap === true) {
+		var lightbox = new lychee.ui.Lightbox('demo-export', 'Exported Font');
+		var desc;
 
-			var lightbox = new lychee.ui.Lightbox('demo-export', 'Exported Font');
-			var desc;
+		desc = document.createElement('h3');
+		desc.innerHTML = '1. Save Image:';
+		lightbox.add(desc);
 
-			desc = document.createElement('h3');
-			desc.innerHTML = '1. Save Image:';
-			lightbox.add(desc);
+		var wrapper = document.createElement('div');
+		wrapper.id = 'demo-export-wrapper';
 
-			var wrapper = document.createElement('div');
-			wrapper.id = 'demo-export-wrapper';
+
+		var code = '// Preload image(s), then create lychee.Font instance:\n\n';
+
+		if (data.images) {
+
+			for (var i = 0, l = data.images.length; i < l; i++) {
+				wrapper.appendChild(data.images[i]);
+			}
+
+			code += '// @images {Array}\n';
+			code += 'new lychee.Font(\n\timages,\n\t' + data.settings + '\n);';
+
+		} else if (data.sprite) {
+
 			wrapper.appendChild(data.sprite);
-			lightbox.add(wrapper);
 
-			desc = document.createElement('h3');
-			desc.innerHTML = '2. Use lychee.Font:';
-			lightbox.add(desc);
-
-			var content = '// Preload image, then create lychee.Font instance:\n\n';
-			content += 'new lychee.Font(image, ' + data.settings + '\n);';
-			var textarea = new lychee.ui.Textarea(content);
-			lightbox.add(textarea);
-
-			lightbox.addTo(_demo);
-			lightbox.show();
-
-		} else if (window.confirm('Want to send the sliced images to the server?') === true) {
-
-			sendToServer(data.images);
+			code += '// @image {Image}\n';
+			code += 'new lychee.Font(\n\timage,\n\t' + data.settings + '\n);';
 
 		}
 
+
+		desc = document.createElement('h3');
+		desc.innerHTML = '2. Use lychee.Font:';
+
+
+		lightbox.add(wrapper);
+		lightbox.add(desc);
+
+		var textarea = new lychee.ui.Textarea(code);
+		lightbox.add(textarea);
+
+		lightbox.addTo(_demo);
+		lightbox.show();
+
+
+		if (
+			settings.spritemap === _tool.Font.SPRITEMAP.none
+			&& window.confirm('Want to send the sliced images to the server?') === true
+		) {
+			sendToServer(data.images);
+		}
+
+	}, this);
+
+
+	_add(null, new lychee.ui.Button('export', function() {
+		_generator.export(settings);
 	}, this));
 
 });
