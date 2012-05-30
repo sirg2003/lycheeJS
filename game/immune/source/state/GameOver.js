@@ -71,10 +71,6 @@ lychee.define('game.state.GameOver').includes([
 			}
 
 
-console.warn('GAMEOVER', data);
-
-
-
 			var width = this.game.settings.width;
 			var height = this.game.settings.height;
 

@@ -131,7 +131,7 @@ lychee.define('game.Renderer').requires([
 					var text = entity.team + ' ( ' + health + ' )';
 					this.drawText(
 						text,
-						x - (text.length * 5),
+						x - (text.length * 4),
 						y - 10,
 						this.game.fonts.small
 					);

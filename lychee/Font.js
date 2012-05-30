@@ -1,6 +1,8 @@
 
 lychee.define('Font').exports(function(lychee) {
 
+	"use strict";
+
 	var Class = function(spriteOrImages, settings) {
 
 		this.settings = lychee.extend({}, this.defaults, settings);
@@ -18,7 +20,7 @@ lychee.define('Font').exports(function(lychee) {
 
 			this.__images = spriteOrImages;
 
-		} else if (sprite instanceof Image){
+		} else if (spriteOrImages instanceof Image){
 
 			this.__sprite = spriteOrImages;
 
@@ -88,14 +90,15 @@ lychee.define('Font').exports(function(lychee) {
 
 		__initSpriteX: function() {
 
-			var offset = this.settings.spacing;
+			var offset = 0;
+			//this.settings.spacing;
 
 			for (var c = 0, l = this.settings.charset.length; c < l; c++) {
 
 				var chr = {
 					id: this.settings.charset[c],
 					width: this.settings.map[c],
-					height: this.sprite.height,
+					height: this.__sprite.height,
 					x: offset - this.settings.kerning,
 					y: 0
 				};
@@ -137,6 +140,14 @@ lychee.define('Font').exports(function(lychee) {
 
 			return null;
 
+		},
+
+		getKerning: function() {
+			return this.settings.kerning || 0;
+		},
+
+		getSprite: function() {
+			return this.__sprite;
 		}
 
 	};

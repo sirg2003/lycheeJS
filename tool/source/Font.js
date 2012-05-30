@@ -33,7 +33,7 @@ lychee.define('tool.Font').tags({
 			spacing: 1,
 			outline: 1,
 			outlineColor: '#000',
-			firstChar: 33,
+			firstChar: 32,
 			lastChar: 127,
 			spritemap: Class.SPRITEMAP.x
 		},
@@ -56,7 +56,7 @@ lychee.define('tool.Font').tags({
 			this.__ctx.fillStyle = this.settings.color;
 
 			for (var c = 0, margin = this.settings.spacing; c < charset.length; c++) {
-				this.__ctx.fillText(charset[c], margin - 1, offsetY);
+				this.__ctx.fillText(charset[c], margin, offsetY);
 				margin += widthMap[c] + this.settings.spacing * 2;
 			}
 
@@ -74,7 +74,7 @@ lychee.define('tool.Font').tags({
 
 				for (var x = -1 * outline; x <= outline; x++) {
 					for (var y = -1 * outline; y <= outline; y++) {
-						this.__ctx.fillText(charset[c], margin + x - 1, offsetY + y);
+						this.__ctx.fillText(charset[c], margin + x, offsetY + y);
 					}
 				}
 

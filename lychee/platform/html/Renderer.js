@@ -188,23 +188,25 @@ lychee.define('Renderer').tags({
 
 
 				var margin = 0;
+				var kerning = font.getKerning();
+				var sprite = font.getSprite();
 				for (t = 0, l = text.length; t < l; t++) {
 
 					var chr = font.get(text[t]);
 
 					this.__ctx.drawImage(
-						font.sprite,
+						chr.sprite || sprite,
 						chr.x,
 						chr.y,
-						chr.width,
+						chr.width + 4,
 						chr.height,
 						x + margin,
 						y,
-						chr.width,
+						chr.width + 4,
 						chr.height
 					);
 
-					margin += chr.width;
+					margin += chr.width + kerning;
 
 				}
 
