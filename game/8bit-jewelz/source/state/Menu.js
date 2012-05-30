@@ -225,7 +225,7 @@ lychee.define('game.state.Menu').includes([
 
 
 				if (headline === 'Welcome') {
-					headline = '8BIT Jewelz';
+					headline = '8BIT - Jewelz';
 				}
 
 				if (width <= 320) {

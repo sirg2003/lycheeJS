@@ -90,8 +90,7 @@ lychee.define('Font').exports(function(lychee) {
 
 		__initSpriteX: function() {
 
-			var offset = 0;
-			//this.settings.spacing;
+			var offset = this.settings.spacing;
 
 			for (var c = 0, l = this.settings.charset.length; c < l; c++) {
 
@@ -99,7 +98,7 @@ lychee.define('Font').exports(function(lychee) {
 					id: this.settings.charset[c],
 					width: this.settings.map[c],
 					height: this.__sprite.height,
-					x: offset - this.settings.kerning,
+					x: offset - this.settings.spacing,
 					y: 0
 				};
 
@@ -144,6 +143,10 @@ lychee.define('Font').exports(function(lychee) {
 
 		getKerning: function() {
 			return this.settings.kerning || 0;
+		},
+
+		getSpacing: function() {
+			return this.settings.spacing || 0;
 		},
 
 		getSprite: function() {

@@ -189,20 +189,36 @@ lychee.define('Renderer').tags({
 
 				var margin = 0;
 				var kerning = font.getKerning();
+				var spacing = font.getSpacing();
 				var sprite = font.getSprite();
+
 				for (t = 0, l = text.length; t < l; t++) {
 
 					var chr = font.get(text[t]);
+
+					if (lychee.debug === true) {
+
+						this.drawBox(
+							x + margin,
+							y,
+							x + margin + chr.width,
+							y + chr.height,
+							'#ff0',
+							false,
+							1
+						);
+
+					}
 
 					this.__ctx.drawImage(
 						chr.sprite || sprite,
 						chr.x,
 						chr.y,
-						chr.width + 4,
+						chr.width + spacing * 2,
 						chr.height,
-						x + margin,
+						x + margin - spacing,
 						y,
-						chr.width + 4,
+						chr.width + spacing * 2,
 						chr.height
 					);
 
